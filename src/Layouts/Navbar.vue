@@ -6,18 +6,24 @@ import { watch, ref, onMounted } from 'vue';
 const router = useRouter();
 const user = authState; 
 const role = ref(localStorage.getItem("UserRole")); 
+const userId = ref(localStorage.getItem("UserId")); 
 
 function deconnect() {
     authService.logout();
+    localStorage.removeItem("UserRole"); 
+    localStorage.removeItem("UserId"); 
     role.value = null; 
+    userId.value = null;
 }
 
 
 watch(user, (isAuth) => {
   if (!isAuth) {
-    router.push('/');
+    router.push('/login');
+    userId.value = null;
   } else {
     role.value = localStorage.getItem("UserRole");
+    userId.value = localStorage.getItem("UserId"); 
   }
 });
 </script>
@@ -33,7 +39,7 @@ watch(user, (isAuth) => {
                     <RouterLink v-if="role === 'admin'" class="nav-link" to="/dashboard">
                         Dashboard 
                     </RouterLink>
-                    <RouterLink v-else class="nav-link" to="/employees">
+                    <RouterLink class="nav-link" :to="`/employees/${userId}`">
                         Mes Infos 
                     </RouterLink>
                 </div>

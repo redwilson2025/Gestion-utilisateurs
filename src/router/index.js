@@ -19,7 +19,7 @@ const router = createRouter({
       meta: { requiresAuth: true, isAdmin: true }, 
     },
     {
-      path: "/employees",
+      path: "/employees/:id",
       name: "employees",
       component: EmployeesView,
       meta: { requiresAuth: true },
@@ -30,20 +30,27 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const loggedIn = authService.isAuthenticated();
   const userRole = localStorage.getItem("UserRole"); 
+  const userId = localStorage.getItem("UserId");
   if (to.meta.requiresAuth && !loggedIn) {
     return next({ name: "login" });
+  }
+  if (to.name === "employees") {
+    const targetId = to.params.id;
+    if (userId !== targetId) {
+      // console.warn("Accès refusé : Vous ne pouvez consulter que vos propres informations.");
+      return next({ name: "employees", params: { id: userId } });
+    }
+  }
+
+  if (to.meta.isAdmin && userRole !== "admin") {
+    return next({ name: "home" });
   }
   if (to.name === "login" && loggedIn) {
     return userRole === "admin" 
       ? next({ name: "dashboard" }) 
-      : next({ name: "employees" });
+      : next({ name: "employees", params: { id: userId } });
   }
 
-  if (to.meta.isAdmin && userRole !== "admin") {
- 
-    return next({ name: "employees" });
-  }
   next();
 });
-
 export default router;
